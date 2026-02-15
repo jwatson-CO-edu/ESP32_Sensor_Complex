@@ -1,0 +1,2 @@
+extern char* _SSID = "SSID GOES HERE";
+extern char* _PSWD = "PASSWORD GOES HERE";
