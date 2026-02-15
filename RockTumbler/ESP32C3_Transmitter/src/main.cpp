@@ -19,10 +19,10 @@ float Humidity    = 6e10;
 
 ///// Temp / Humid Sensor Setup ///////////////////////////////////////////
 #define DHTTYPE DHT22   // DHT 22 (AM2302), AM2321
-uint8_t DHTPin = 1; // DHT Sensor pin // Digital Pin 01
+uint8_t DHTPin = 2; // DHT Sensor pin // Digital Pin 01
 DHT     dht( DHTPin, DHTTYPE ); // Initialize DHT sensor.
 
-///// WLAN Setup //////////////////////////////////////////////////////////
+///// WLAN + Server Setup /////////////////////////////////////////////////
 const char* ssid     = _SSID; // Enter your WiFi SSID
 const char* password = _PSWD; // Enter your WiFi password
 WebServer   server(80); // Create a web server object that listens for HTTP requests on port 80
@@ -95,9 +95,15 @@ void setup() {
     if( _SERIAL_COMM )  DEBUG_PRINTLN( "Connecting to WiFi..." );
     WiFi.begin( ssid, password ); // Connect to Wi-Fi network
     // Wait until the device is connected to Wi-Fi
+    size_t i = 0;
     while( WiFi.status() != WL_CONNECTED ){
+        ++i; 
         delay( 1000 );
-        DEBUG_PRINT(".");
+        if( _SERIAL_COMM )  DEBUG_PRINT(".");
+        if( i%10 == 0 ){
+            if( _SERIAL_COMM )  DEBUG_PRINT("<ATTEMPT CONNECT>");
+            WiFi.begin( ssid, password );
+        }
     }
 
     DEBUG_PRINTLN("\nWiFi connected!");
