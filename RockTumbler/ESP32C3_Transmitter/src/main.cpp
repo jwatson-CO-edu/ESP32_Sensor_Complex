@@ -4,6 +4,7 @@
 #include <WiFi.h>
 #include <WebServer.h>
 #include "DHT.h"
+#include "ADS1X15.h"
 #include "WifiKey.h" // SECRETS HEADER FILE
 
 ///// Defines /////////////////////////////////////////////////////////////
@@ -21,6 +22,14 @@ float Humidity    = 6e10;
 #define DHTTYPE DHT22   // DHT 22 (AM2302), AM2321
 uint8_t DHTPin = 2; // DHT Sensor pin // Digital Pin 01
 DHT     dht( DHTPin, DHTTYPE ); // Initialize DHT sensor.
+
+///// Current Sensor Setup ////////////////////////////////////////////////
+ADS1115 ADS( 0x48 );
+float   adsVolt0 = 0.0;
+float   adsVolt1 = 0.0;
+float   adsVolt2 = 0.0;
+float   adsVolt3 = 0.0;
+
 
 ///// WLAN + Server Setup /////////////////////////////////////////////////
 const char* ssid     = _SSID; // Enter your WiFi SSID
@@ -54,10 +63,33 @@ String SendHTML( String Temperaturestat, String Humiditystat ) {
     return ptr;
 }
 
-// Handle connection to the root URL
-void handle_OnConnect() {
+
+void fetch_temp_humid(){
     Temperature = dht.readTemperature(); // Get temperature value
     Humidity    = dht.readHumidity(); // -- Get humidity value
+}
+
+
+void fetch_ADS_readings(){
+    ADS.setGain(0);
+    int16_t val_0 = ADS.readADC(0);  
+    int16_t val_1 = ADS.readADC(1);  
+    int16_t val_2 = ADS.readADC(2);  
+    int16_t val_3 = ADS.readADC(3);  
+    float   f     = ADS.toVoltage(2);  // voltage factor
+
+    adsVolt0 = f * val_0;
+    adsVolt1 = f * val_1;
+    adsVolt2 = f * val_2;
+    adsVolt3 = f * val_3;
+}
+
+
+// Handle connection to the root URL
+void handle_OnConnect() {
+    
+    fetch_temp_humid();
+    fetch_ADS_readings();
 
     // Check if any reading failed and send "N/A" if so
     if( isnan( Temperature ) || isnan( Humidity ) ){
@@ -88,11 +120,23 @@ void handle_NotFound() {
 ////////// BOOT ////////////////////////////////////////////////////////////////////////////////////
 
 void setup() {
+
+    if( _SERIAL_COMM )  DEBUG_PRINTLN( "Starting to Temp Sensor ..." );
     if( _SERIAL_COMM )  Serial.begin( 115200 ); // Start the Serial communication to send messages to the computer
     delay( 100 );
     dht.begin(); // Initialize the DHT sensor
+    if( _SERIAL_COMM )  DEBUG_PRINTLN( "Temp Sensor Started!" );
 
-    if( _SERIAL_COMM )  DEBUG_PRINTLN( "Connecting to WiFi..." );
+    if( _SERIAL_COMM ){
+        DEBUG_PRINTLN( "Starting to Current Sensor ..." );
+        DEBUG_PRINTLN( __FILE__ );
+        DEBUG_PRINT( "ADS1X15_LIB_VERSION: " );
+        DEBUG_PRINTLN( ADS1X15_LIB_VERSION );
+    }  
+    ADS.begin();
+    if( _SERIAL_COMM )  DEBUG_PRINTLN( "Current Sensor Started!" );
+
+    if( _SERIAL_COMM )  DEBUG_PRINTLN( "Connecting to WiFi ..." );
     WiFi.begin( ssid, password ); // Connect to Wi-Fi network
     // Wait until the device is connected to Wi-Fi
     size_t i = 0;

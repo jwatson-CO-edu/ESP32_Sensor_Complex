@@ -1,0 +1,3 @@
+[submodule "RockTumbler/libs/ADS1X15"]
+	path = RockTumbler/libs/ADS1X15
+	url = git@github.com:RobTillaart/ADS1X15.git
