@@ -1,4 +1,5 @@
 ////////// INIT ////////////////////////////////////////////////////////////////////////////////////
+#pragma GCC diagnostic ignored "-Wwrite-strings"
 
 ///// Includes ////////////////////////////////////////////////////////////
 #include <WiFi.h>
@@ -56,6 +57,10 @@ String SendHTML( String Temperaturestat, String Humiditystat ) {
     ptr += "<p>Humidity: ";
     ptr += Humiditystat;
     ptr += "%</p>";
+
+    ptr += "<p>Current: ";
+    ptr += String( adsVolt0 ) + ", " + String( adsVolt1 ) + ", " + String( adsVolt2 ) + ", " + String( adsVolt3 ) + ", ";
+    ptr += "</p>";
 
     ptr += "</div>\n";
     ptr += "</body>\n";
@@ -133,6 +138,7 @@ void setup() {
         DEBUG_PRINT( "ADS1X15_LIB_VERSION: " );
         DEBUG_PRINTLN( ADS1X15_LIB_VERSION );
     }  
+    Wire.begin();
     ADS.begin();
     if( _SERIAL_COMM )  DEBUG_PRINTLN( "Current Sensor Started!" );
 
